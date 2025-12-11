@@ -36,6 +36,10 @@ class IPTablesParser:
     def __init__(self):
         self.rules = []
     
+    def _is_size_value(self, part: str) -> bool:
+        """Check if a part represents a numeric value with size suffixes"""
+        return part.replace('K', '').replace('M', '').replace('G', '').isdigit()
+    
     def parse_iptables_output(self, output: str) -> List[IPTablesRule]:
         """
         Parse the output from 'iptables -L -n -v' or 'iptables-save'
@@ -153,10 +157,10 @@ class IPTablesParser:
             # Find where target starts (first non-numeric field after initial counters)
             idx = 0
             # Skip packets
-            if parts[idx].replace('K', '').replace('M', '').replace('G', '').isdigit():
+            if self._is_size_value(parts[idx]):
                 idx += 1
             # Skip bytes
-            if idx < len(parts) and parts[idx].replace('K', '').replace('M', '').replace('G', '').isdigit():
+            if idx < len(parts) and self._is_size_value(parts[idx]):
                 idx += 1
             
             if idx < len(parts):

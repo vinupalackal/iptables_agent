@@ -4,8 +4,12 @@ IPTables Rule Explainer Module
 This module converts parsed iptables rules into human-readable explanations.
 """
 
+import re
 from typing import List
 from .parser import IPTablesRule
+
+# Constants for common address representations
+ANY_ADDRESSES = ['0.0.0.0/0', 'anywhere', '']
 
 
 class RuleExplainer:
@@ -70,7 +74,7 @@ class RuleExplainer:
             conditions.append("all traffic")
         
         # Source
-        if rule.source and rule.source not in ['0.0.0.0/0', 'anywhere', '']:
+        if rule.source and rule.source not in ANY_ADDRESSES:
             conditions.append(f"from {rule.source}")
         
         # Source port
@@ -78,7 +82,7 @@ class RuleExplainer:
             conditions.append(f"from port {rule.source_port}")
         
         # Destination
-        if rule.destination and rule.destination not in ['0.0.0.0/0', 'anywhere', '']:
+        if rule.destination and rule.destination not in ANY_ADDRESSES:
             conditions.append(f"to {rule.destination}")
         
         # Destination port
@@ -103,13 +107,11 @@ class RuleExplainer:
             extra = ' '.join(rule.extra_options)
             if 'dpt:' in extra:
                 # Extract destination port from extra options
-                import re
                 match = re.search(r'dpt:(\S+)', extra)
                 if match and not rule.destination_port:
                     conditions.append(f"to port {match.group(1)}")
             elif 'spt:' in extra:
                 # Extract source port from extra options
-                import re
                 match = re.search(r'spt:(\S+)', extra)
                 if match and not rule.source_port:
                     conditions.append(f"from port {match.group(1)}")
